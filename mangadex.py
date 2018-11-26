@@ -14,7 +14,7 @@ def threaded_downloader(url, chapter, manga):
 # Downloads file in format */manga/chapter/A1.png
 def download(url, chapter, manga):
     name = url.split('/')
-    location = os.path.join(manga['title'], chapter, name[len(name) - 1])
+    location = os.path.join('manga', manga['title'], chapter, name[len(name) - 1])
     dl_name = os.path.join(chapter, name[len(name) - 1])
 
     if not os.path.isfile(location):
@@ -58,7 +58,7 @@ def getimages(chapters, manga):
             chapter = str(0)
 
         # Starts the download process
-        location = os.path.join(manga['title'], chapter)
+        location = os.path.join('manga', manga['title'], chapter)
         createfolder(location)
         for page in pages:
             url = server + hash + '/' + page
@@ -67,7 +67,6 @@ def getimages(chapters, manga):
 
 # Gets the chapters from mangas json file
 def getchapters(manga):
-    print(manga)
     url = 'https://mangadex.org/api/?id=' + manga['id'] + '&type=manga'
     file = requests.get(url).json()
 
@@ -78,11 +77,12 @@ def getchapters(manga):
         number = file['chapter'][chapter].get('chapter')
         if file['chapter'][chapter].get('lang_code') == 'gb' and number not in chapter_number:
             list.append(chapter)
-    createfolder(manga['title'])
+    createfolder(os.path.join('manga', manga['title']))
     getimages(list, manga)
 
 
 def main():
+    createfolder('manga')
     mangaurl = input('Link to mangadex: ')
     mangasplit = mangaurl.split('/')
     url = 'https://mangadex.org/api/?id=' + mangasplit[4] + '&type=manga'
