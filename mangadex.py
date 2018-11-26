@@ -3,6 +3,7 @@
 import requests
 import threading
 import os
+import time
 
 
 # Starts threaded download
@@ -22,8 +23,6 @@ def download(url, chapter, manga):
         print('Downloading image', dl_name)
         with open(location, 'wb') as file:
             file.write(image)
-    else:
-        print(dl_name, 'exists already')
 
 
 # Creates folder
@@ -42,7 +41,7 @@ def getimages(chapters, manga):
             url = 'https://mangadex.org/api/?id=' + str(id) + '&type=chapter'
             content = requests.get(url).json()
         except ValueError:
-            print(id, 'broke')
+            print(id, 'failed to download')
             pass
 
         # Easy access to important variables
@@ -63,6 +62,8 @@ def getimages(chapters, manga):
         for page in pages:
             url = server + hash + '/' + page
             threaded_downloader(url, chapter, manga)
+        # Without delay program skips chapters
+        time.sleep(0.1)
 
 
 # Gets the chapters from mangas json file
@@ -74,9 +75,11 @@ def getchapters(manga):
     chapter_number = []
 
     for chapter in file['chapter']:
+        # chapter_number and number make sure that no duplicate chapters are downloaded
         number = file['chapter'][chapter].get('chapter')
         if file['chapter'][chapter].get('lang_code') == 'gb' and number not in chapter_number:
             list.append(chapter)
+            chapter_number.append(number)
     createfolder(os.path.join('manga', manga['title']))
     getimages(list, manga)
 
