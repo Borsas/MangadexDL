@@ -72,15 +72,16 @@ def getchapters(manga):
     file = requests.get(url).json()
 
     list = []
-    chapter_number = []
+    chapter_numbers = []
 
     for chapter in file['chapter']:
-        # chapter_number and number make sure that no duplicate chapters are downloaded
-        number = file['chapter'][chapter].get('chapter')
-        if file['chapter'][chapter].get('lang_code') == 'gb' and number not in chapter_number:
+        # chapter_numbers and ch_number make sure that no duplicate chapters are downloaded
+        ch_number = file['chapter'][chapter].get('chapter')
+        if file['chapter'][chapter].get('lang_code') == 'gb' and ch_number not in chapter_numbers:
             list.append(chapter)
-            chapter_number.append(number)
+            chapter_numbers.append(ch_number)
     createfolder(os.path.join('manga', manga['title']))
+    list.reverse()
     getimages(list, manga)
 
 
