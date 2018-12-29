@@ -37,12 +37,8 @@ def createfolder(folder):
 # Gets the images from chapters json file
 def getimages(chapters, manga):
     for id in chapters:
-        try:
-            url = 'https://mangadex.org/api/?id=' + str(id) + '&type=chapter'
-            content = requests.get(url).json()
-        except ValueError:
-            print(id, 'failed to download')
-            pass
+        url = 'https://mangadex.org/api/?id=' + str(id) + '&type=chapter'
+        content = requests.get(url).json()
 
         # Easy access to important variables
         hash = content['hash']
@@ -54,7 +50,7 @@ def getimages(chapters, manga):
         if server == '/data/':
             server = 'https://mangadex.org/data/'
         if not chapter:
-            chapter = str(0)
+            chapter = '0'
 
         # Starts the download process
         location = os.path.join('manga', manga['title'], chapter)
