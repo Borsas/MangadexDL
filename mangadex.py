@@ -5,6 +5,8 @@ import threading
 import os
 import time
 
+HEADERS = {"User-Agent": "Mozilla/5.0"}
+
 
 # Starts threaded download
 def threaded_downloader(url, chapter, manga):
@@ -38,7 +40,7 @@ def createfolder(folder):
 def getimages(chapters, manga):
     for id in chapters:
         url = 'https://mangadex.org/api/?id=' + str(id) + '&type=chapter'
-        content = requests.get(url).json()
+        content = requests.get(url, headers=HEADERS).json()
 
         # Easy access to important variables
         hash = content['hash']
@@ -64,8 +66,8 @@ def getimages(chapters, manga):
 
 # Gets the chapters from mangas json file
 def getchapters(manga):
-    url = 'https://mangadex.org/api/?id=' + manga['id'] + '&type=manga'
-    file = requests.get(url).json()
+    url = 'https://mangadex.org/api/?id={}&type=manga'.format(manga['id'])
+    file = requests.get(url, headers=HEADERS).json()
 
     list = []
     chapter_numbers = []
@@ -85,12 +87,15 @@ def main():
     createfolder('manga')
     mangaurl = input('Link to mangadex: ')
     mangasplit = mangaurl.split('/')
-    url = 'https://mangadex.org/api/?id=' + mangasplit[4] + '&type=manga'
-    link = requests.get(url).json()
-    manganame = {'id': mangasplit[4],
-                 'title': link['manga']['title']}
+    print(mangasplit)
 
-    getchapters(manganame)
+    url = 'https://mangadex.org/api/?id={}&type=manga'.format(mangasplit[4])
+    data = requests.get(url, headers=HEADERS).json()
+
+    mangainfo = {'id': mangasplit[4],
+                 'title': data['manga']['title']}
+
+    getchapters(mangainfo)
 
 
 if __name__ == "__main__":
