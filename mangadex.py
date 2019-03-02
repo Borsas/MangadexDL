@@ -7,7 +7,11 @@ import sys
 import time
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
-MANGA_FOLDER = os.path.join('manga')
+# Allows user to change save destination
+if len(sys.argv) == 3:
+    MANGA_FOLDER = sys.argv[2]
+else:
+    MANGA_FOLDER = 'manga'
 
 
 # Starts threaded download
@@ -99,10 +103,7 @@ def userinput():
             return mangaurl
     else:
         mangaurl = input('Link to mangadex: ')
-    manga_id = mangaurl.split('/')[4]
-
-    return manga_id
-    print('Invalid URL')
+    return mangaurl.split('/')[4]
 
 
 def main():
