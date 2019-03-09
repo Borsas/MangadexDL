@@ -5,8 +5,13 @@ import threading
 import os
 import sys
 import time
+import cfscrape
+
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
+
+scraper = cfscrape.create_scraper()
+
 # Allows user to change save destination
 if len(sys.argv) == 3:
     MANGA_FOLDER = sys.argv[2]
@@ -46,10 +51,13 @@ def createfolder(folder):
 def getimages(chapters, title):
     for id in chapters:
         url = 'https://mangadex.org/api/?id={}&type=chapter'.format(str(id))
-        content = requests.get(url, headers=HEADERS).json()
+        try:
+            content = requests.get(url, headers=HEADERS).json()
+        except ValueError:
+            content = scraper.get(url).json()
 
         # Easy access to important variables
-        hash = content['hash']
+        manga_hash = content['hash']
         pages = content['page_array']
         chapter = content['chapter']
         server = content['server']
@@ -64,7 +72,7 @@ def getimages(chapters, title):
         location = os.path.join(MANGA_FOLDER, title, chapter)
         createfolder(location)
         for page in pages:
-            url = os.path.join(server, hash, page)
+            url = os.path.join(server, manga_hash, page)
             threaded_downloader(url, chapter, title)
         # Without delay script skips chapters
         time.sleep(0.1)
@@ -72,27 +80,30 @@ def getimages(chapters, title):
 
 # Gets the chapters from mangas json file
 def getchapters(manga_id):
+    url = 'https://mangadex.org/api/?id={}&type=manga'.format(manga_id)
     try:
-        url = 'https://mangadex.org/api/?id={}&type=manga'.format(manga_id)
         data = requests.get(url, headers=HEADERS).json()
     except ValueError:
-        print('"{}" is not a valid ID, exiting script...'.format(manga_id))
-        sys.exit()
+        print('Mangadex is using Cloudflare DDOS protect, this will take a moment...')
+        data = scraper.get(url).json()
+        # sys.exit('"{}" is not a valid ID, exiting script...'.format(manga_id))
+    chapters = []
+    downloaded_chapters = []
+    try:
+        for chapter in data['chapter']:
+            # downloaded_chapters and ch_number make sure that no duplicate chapters are downloaded
+            ch_number = data['chapter'][chapter].get('chapter')
+            # Checks that there are no dublicate chapters from different translators
+            if data['chapter'][chapter].get('lang_code') == 'gb' and ch_number not in downloaded_chapters:
+                chapters.append(chapter)
+                downloaded_chapters.append(ch_number)
+    except KeyError:
+        sys.exit('"{}" is not a valid ID, exiting script...'.format(manga_id))
 
     createfolder(MANGA_FOLDER)
-    list = []
-    downloaded_chapters = []
-
-    for chapter in data['chapter']:
-        # downloaded_chapters and ch_number make sure that no duplicate chapters are downloaded
-        ch_number = data['chapter'][chapter].get('chapter')
-        # Checks that there are no dublicate chapters from different translators
-        if data['chapter'][chapter].get('lang_code') == 'gb' and ch_number not in downloaded_chapters:
-            list.append(chapter)
-            downloaded_chapters.append(ch_number)
     createfolder(os.path.join(MANGA_FOLDER, data['manga']['title']))
-    list.reverse()
-    getimages(list, data['manga']['title'])
+    chapters.reverse()
+    getimages(chapters, data['manga']['title'])
 
 
 # Takes the full URL to mangadex or just the manga id
@@ -101,6 +112,8 @@ def userinput():
         mangaurl = sys.argv[1]
         if '/' not in mangaurl:
             return mangaurl
+        else:
+            return mangaurl.split('/')[4]
     else:
         mangaurl = input('Link to mangadex: ')
     return mangaurl.split('/')[4]
