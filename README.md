@@ -9,4 +9,5 @@ Script requires <a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/"
 	and <a href="https://github.com/Anorov/cloudflare-scrape">Cloudflare-scrape.<a> 
 
 Cloudflare-Scrape is only used when Mangadex Cloudflare DDOS protect is up.
+
 If you are getting threading errors, please run `pip install -U requests[security]`

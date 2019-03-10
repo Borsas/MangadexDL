@@ -9,7 +9,6 @@ import cfscrape
 
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
-
 scraper = cfscrape.create_scraper()
 
 # Allows user to change save destination
@@ -28,12 +27,11 @@ def threaded_downloader(url, chapter, title):
 # Downloads file in format */manga/chapter/A1.png
 def download(url, chapter, title):
     name = url.split('/')
-    location = os.path.join(MANGA_FOLDER, title, chapter, name[len(name) - 1])
-    dl_name = os.path.join(chapter, name[len(name) - 1])
+    location = os.path.join(MANGA_FOLDER, title, chapter, name[-1])
 
     if not os.path.isfile(location):
         image = requests.get(url).content
-        print('Downloading image', dl_name)
+        print('Downloading image', location)
         with open(location, 'wb') as file:
             file.write(image)
 
@@ -106,17 +104,20 @@ def getchapters(manga_id):
     getimages(chapters, data['manga']['title'])
 
 
+# Get the manga URL
+def get_mangaurl(mangaurl):
+    if '/' not in mangaurl:
+            return mangaurl
+    else:
+        return mangaurl.split('/')[4]
+
+
 # Takes the full URL to mangadex or just the manga id
 def userinput():
     if len(sys.argv) > 1:
-        mangaurl = sys.argv[1]
-        if '/' not in mangaurl:
-            return mangaurl
-        else:
-            return mangaurl.split('/')[4]
+        return get_mangaurl(sys.argv[1])
     else:
-        mangaurl = input('Link to mangadex: ')
-    return mangaurl.split('/')[4]
+        return get_mangaurl(input('Link to mangadex: '))
 
 
 def main():
